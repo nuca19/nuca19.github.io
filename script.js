@@ -28,10 +28,9 @@ renderer.setSize(window.innerWidth, window.innerHeight);
 document.body.appendChild(renderer.domElement);
 //renderer.setClearColor(0xFFFFFF, 1);
 
-const axes = new THREE.AxesHelper(15);
-axes.position.set(-20, 0, 0);
-
-scene.add(axes);
+//const axes = new THREE.AxesHelper(15);
+//axes.position.set(-20, 0, 0);
+//scene.add(axes);
 
 //ambient light
 var light = new THREE.AmbientLight(0xffffff); // soft white light
@@ -322,7 +321,7 @@ function handleAudioInput() {
                     for (let i = 0; i < bufferLength; i++) {
                         sum += dataArray[i];
                     }
-                    //retirar comment !!!!
+                    //comment quando nao usar voz!!!!
                     average = sum / bufferLength;
                     
                     if (average > 40 && average <= 50) { // Adjust the threshold levels as needed
@@ -349,7 +348,7 @@ function handleAudioInput() {
                     volumeDisplay.textContent = 'Volume Level: ' + Math.round(average);
                     volumeModel.scale.y = average / 100 *2;
 
-                    //average= 0; //retirar quando usar voz!!!!
+                    //average= 0; //retirar quando nao usar voz!!!!
 
                 }
                 draw();
@@ -382,7 +381,7 @@ function createStartButton() {
     const volumeButton70 = document.createElement('button');
     volumeButton70.textContent = 'Set Volume to 70';
     volumeButton70.addEventListener('click', function() {
-        average = 70;
+        average = 76;
     });
     buttonContainer.appendChild(volumeButton70);
 
