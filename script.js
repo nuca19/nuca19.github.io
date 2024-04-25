@@ -1,6 +1,7 @@
 import { PointerLockControls } from '/js/PointerLockControls.js';
 window.PointerLockControls = PointerLockControls;
 
+
 let object;
 let meteor;
 let volumeModel;
@@ -22,7 +23,7 @@ function initializeAudioContext() {
 // Initialize Three.js scene
 const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 2000);
-camera.position.set(0, 1, 0);
+camera.position.set(100, 22.5, 0);
 const renderer = new THREE.WebGLRenderer();
 renderer.setSize(window.innerWidth, window.innerHeight);
 document.body.appendChild(renderer.domElement);
@@ -32,12 +33,13 @@ document.body.appendChild(renderer.domElement);
 //axes.position.set(-20, 0, 0);
 //scene.add(axes);
 
+
 //ambient light
 var light = new THREE.AmbientLight(0xffffff); // soft white light
 scene.add(light);
 
 //create sky
-var skyGeo = new THREE.SphereGeometry(1000, 25, 25);
+var skyGeo = new THREE.SphereGeometry(1700, 25, 25);
 var loader  = new THREE.TextureLoader();
 
 loader.load("textures/nightsky2.jpg", function(texture) {
@@ -59,7 +61,7 @@ loader.load('textures/ground.png', function(texture) {
     texture.wrapT = THREE.RepeatWrapping;
     texture.repeat.set(4, 4); // Repeat the texture 4 times in both directions
 
-    var geometry = new THREE.BoxGeometry(600, 600, 3);
+    var geometry = new THREE.BoxGeometry(1500, 1500, 3);
     var material = new THREE.MeshBasicMaterial({ map: texture, side: THREE.DoubleSide });
     var plane = new THREE.Mesh(geometry, material);
     plane.rotation.x = -Math.PI / 2; // Rotate the plane to make it horizontal
@@ -67,21 +69,29 @@ loader.load('textures/ground.png', function(texture) {
     scene.add(plane);
 
     //mountaintains
-    var geometry = new THREE.ConeGeometry(25, 15, 4);
+    geometry = new THREE.ConeGeometry(250, 150, 4);
     var mountain = new THREE.Mesh(geometry, material);
-    mountain.position.set(-80, 1, 50);
+    mountain.position.set(-390, 10, 350);
     scene.add(mountain);
-    var geometry = new THREE.ConeGeometry(35, 25, 4);
+    
+    geometry = new THREE.ConeGeometry(350, 250, 4);
     mountain = new THREE.Mesh(geometry, material);
-    mountain.position.set(-80, 4, 20);
+    mountain.position.set(-400, 40, 150);
     scene.add(mountain);
-    var geometry = new THREE.ConeGeometry(50, 35, 4);
+    
+    geometry = new THREE.ConeGeometry(500, 350, 4);
     mountain = new THREE.Mesh(geometry, material);
-    mountain.position.set(-80, 7, -10);
+    mountain.position.set(-450, 70, -150);
     scene.add(mountain);
-    var geometry = new THREE.ConeGeometry(20, 20, 4);
+    
+    geometry = new THREE.ConeGeometry(200, 200, 4);
     mountain = new THREE.Mesh(geometry, material);
-    mountain.position.set(15, -0.5, 80);
+    mountain.position.set(175, -5, 600);
+    scene.add(mountain);
+
+    geometry = new THREE.ConeGeometry(100, 50, 6);
+    mountain = new THREE.Mesh(geometry, material);
+    mountain.position.set(100, -5, 0); 
     scene.add(mountain);
 
 });
@@ -100,17 +110,17 @@ function createTree() {
     // Repeat the trunk texture
     trunkTexture.wrapS = THREE.RepeatWrapping;
     trunkTexture.wrapT = THREE.RepeatWrapping;
-    trunkTexture.repeat.set(3, 3); // Adjust these values as needed
+    trunkTexture.repeat.set(3, 3); 
 
-    var geometry = new THREE.ConeGeometry(1, 2, 4);
+    var geometry = new THREE.ConeGeometry(2, 4, 4); 
     var material = new THREE.MeshPhongMaterial({map: leavesTexture});
     var treeTop = new THREE.Mesh(geometry, material);
 
-    geometry = new THREE.CylinderGeometry(0.25, 0.25, 1.5);
-    material = new THREE.MeshPhongMaterial({map: trunkTexture}); // Apply the trunk texture
+    geometry = new THREE.CylinderGeometry(0.5, 0.5, 3); 
+    material = new THREE.MeshPhongMaterial({map: trunkTexture}); 
     var treeTrunk = new THREE.Mesh(geometry, material);
 
-    treeTrunk.position.y = -1.75;
+    treeTrunk.position.y = -3.5; 
     treeTop.add(treeTrunk);
 
     return treeTop;
@@ -123,9 +133,9 @@ function createForest(x, y, z, treeCount) {
     for (var i = 0; i < treeCount; i++) {
         var tree = createTree();
         tree.position.set(
-            x + Math.random() * 50 - 25, // Increased range for random position
+            x + Math.random() * 75 - 25, 
             y,
-            z + Math.random() * 50 - 25  // Increased range for random position
+            z + Math.random() * 75 - 25  
         );
         forest.add(tree);
     }
@@ -134,9 +144,9 @@ function createForest(x, y, z, treeCount) {
 }
 
 // Create forests
-var forest1 = createForest(-30, 0, -30, 50);
+var forest1 = createForest(-30, 3, -50, 50);
 scene.add(forest1);
-var forest3 = createForest(-30, 0, 40, 50);
+var forest3 = createForest(-50, 3, 60, 50);
 scene.add(forest3);
 
 //river
@@ -145,22 +155,18 @@ loader.load('textures/water.jpg', function(texture) {
     watertexture = texture;
     // Define the points along the path of the river
     const points = [
-        new THREE.Vector3(-75, 2, 10),
-        new THREE.Vector3(-64, 0, 8),
-        new THREE.Vector3(-61, -2, 12),
-        new THREE.Vector3(-50, -3, 8),
-        new THREE.Vector3(-20, -3, -1),
-        new THREE.Vector3(-10, -3, -1),
-        new THREE.Vector3(-5, -3, 15),
-        new THREE.Vector3(20, -3, 20),
-        new THREE.Vector3(20, -3, 40),
-        new THREE.Vector3(20, -3, 60),
-        new THREE.Vector3(50, -3, 80)
+        new THREE.Vector3(-500, -6, 10),
+        new THREE.Vector3(-100, -6, 12),
+        new THREE.Vector3(-50, -6, 8),
+        new THREE.Vector3(20, -6, 20),
+        new THREE.Vector3(20, -6, 40),
+        new THREE.Vector3(20, -6, 60),
+        new THREE.Vector3(50, -6, 200)
     ];
 
     // Create a curve from the points
     const curve = new THREE.CatmullRomCurve3(points);
-    const riverGeometry = new THREE.TubeGeometry(curve, 64, 2, 8, false);
+    const riverGeometry = new THREE.TubeGeometry(curve, 70, 8, 16, false);
     const riverMaterial = new THREE.MeshPhongMaterial({
         map: texture,
         transparent: true,
@@ -176,18 +182,18 @@ loader.load('textures/water.jpg', function(texture) {
     const lake = new THREE.Mesh(lakeGeometry, riverMaterial);
 
     // Position the lake at the end of the vector
-    lake.position.set(50,-1, 80);
+    lake.position.set(50,-2, 80);
     lake.rotation.x = -Math.PI / 2;
 
     // Add the lake to the scene
-    scene.add(lake);
+    //scene.add(lake);
 });
 
 function createCabin() {
     var cabin = new THREE.Group();
 
     // Create the walls
-    var geometry = new THREE.PlaneGeometry(5, 5);
+    var geometry = new THREE.PlaneGeometry(7, 5);
     var material = new THREE.MeshPhongMaterial({color: 0x8b4513, side: THREE.DoubleSide}); // Make the walls double-sided
     var wall1 = new THREE.Mesh(geometry, material);
     var wall2 = wall1.clone();
@@ -199,10 +205,10 @@ function createCabin() {
     wall3.rotation.y = -Math.PI / 2;
     wall4.rotation.y = 0;
 
-    wall1.position.z = 2.5;
-    wall2.position.x = 2.5;
+    wall1.position.z = 3.75;
+    wall2.position.x = 3.5;
     wall3.position.x = -2.5;
-    wall4.position.z = -2.5;
+    wall4.position.z = -3.75;
 
     cabin.add(wall1, wall2, wall4);
 
@@ -219,46 +225,49 @@ function createCabin() {
     material = new THREE.MeshPhongMaterial({color: 0x663300});
     var door = new THREE.Mesh(geometry, material);
     door.position.y = -1.5;
-    door.position.z = 2.5;
+    door.position.z = 3.75;
     cabin.add(door);
+    
+    // Create the floor
+    var floorGeometry = new THREE.PlaneGeometry(19, 15); // Adjust the size as needed
+    var floorMaterial = new THREE.MeshPhongMaterial({color: 0x654321}); // Adjust the color as needed
+    var floor = new THREE.Mesh(floorGeometry, floorMaterial);
+
+    // Position the floor under the cabin
+    floor.position.set(97.5, 20, 0); // Adjust the position as needed
+    floor.rotation.x = -Math.PI / 2; // Rotate the floor to be horizontal
+
+    // Add the floor to the scene
+    scene.add(floor);
 
     return cabin;
 }
 
 // Create a cabin and add it to the scene
 var cabin = createCabin();
-cabin.position.set(0, 2, 0); // Set the position to the starting position
+cabin.position.set(100, 24, 0); // Set the position to the starting position
 cabin.scale.set(2, 2, 2); // Scale the cabin
-//scene.add(cabin);
+scene.add(cabin);
 
 
 var city = new THREE.Group();
 var buildings = [
-    { position: { x: -5, y: 0, z: -20 }, size: { width: 6, height: 15, depth: 6 } },
-    { position: { x: 5, y: 0, z: -15 }, size: { width: 6, height: 12, depth: 6 } },
-    { position: { x: 15, y: 0, z: -10 }, size: { width: 6, height: 18, depth: 6 } },
-    { position: { x: -5, y: 0, z: -5 }, size: { width: 6, height: 9, depth: 6 } },
-    { position: { x: 6, y: 0, z: -3 }, size: { width: 6, height: 6, depth: 6 } },
-    { position: { x: 10, y: 0, z: -25 }, size: { width: 6, height: 21, depth: 6 } },
-    { position: { x: -15, y: 0, z: -15 }, size: { width: 6, height: 12, depth: 6 } },
+    { position: { x: -10, y: 0, z: -40 }, size: { width: 12, height: 30, depth: 12 } },
+    { position: { x: 10, y: 0, z: -30 }, size: { width: 12, height: 24, depth: 12 } },
+    { position: { x: 30, y: 0, z: -20 }, size: { width: 12, height: 36, depth: 12 } },
+    { position: { x: -10, y: 0, z: -10 }, size: { width: 12, height: 18, depth: 12 } },
+    { position: { x: 12, y: 0, z: -6 }, size: { width: 12, height: 12, depth: 12 } },
+    { position: { x: 20, y: 0, z: -50 }, size: { width: 12, height: 42, depth: 12 } },
+    { position: { x: -30, y: 0, z: -30 }, size: { width: 12, height: 24, depth: 12 } },
 ];
 
 
 // Create the buildings
 for (var i = 0; i < buildings.length; i++) {
-    // Create a box geometry for the building
     var buildingGeometry = new THREE.BoxGeometry(buildings[i].size.width, buildings[i].size.height, buildings[i].size.depth);
-
-    // Create a basic material for the building
     var buildingMaterial = new THREE.MeshBasicMaterial({color: 0x1C1D22});
-
-    // Create a mesh for the building
     var building = new THREE.Mesh(buildingGeometry, buildingMaterial);
-
-    // Position the building
     building.position.set(buildings[i].position.x, buildings[i].size.height / 2, buildings[i].position.z);
-
-    // Add the building to the city
     city.add(building);
 }
 
@@ -268,23 +277,27 @@ scene.add(city);
 
 
 
-const volumeModelGeometry = new THREE.BoxGeometry(1, 1, 1);
+const volumeModelGeometry = new THREE.BoxGeometry(2, 2, 2);
 volumeModelGeometry.translate(0, 0.5, 0);
 const volumeModelMaterial = new THREE.MeshBasicMaterial({color: 0x00ff00});
 volumeModel = new THREE.Mesh(volumeModelGeometry, volumeModelMaterial);
-volumeModel.position.set(-1, 0, -3);
+volumeModel.position.set(100, 21, -6.2);
 volumeModel.scale.y = 0;
 scene.add(volumeModel);
+const baseGeometry = new THREE.BoxGeometry(2.5, 2.5, 2.5);
+const baseMaterial = new THREE.MeshBasicMaterial({color: 0x1C1D22}); // Change the color as needed
+const base = new THREE.Mesh(baseGeometry, baseMaterial);
+base.position.set(100, 19.9, -6.2); // Position it under the volumeModel
+scene.add(base);
 
 // Create a sphere for visualization
 //moon
 loader = new THREE.TextureLoader();
 loader.load('textures/moon.jpg', function(texture) {
-    const sungeo = new THREE.SphereGeometry(15, 32, 32);
+    const sungeo = new THREE.SphereGeometry(70, 32, 32);
     const sunmat = new THREE.MeshBasicMaterial({ map: texture });
     object = new THREE.Mesh(sungeo, sunmat);
-    object.position.x = -100;
-    object.position.y = 30;
+    object.position.set(-500, 200, 0);
     scene.add(object);
     object.visible = false; // Initially hide the object
 });
@@ -325,6 +338,7 @@ function handleAudioInput() {
                     average = sum / bufferLength;
                     
                     if (average > 40 && average <= 50) { // Adjust the threshold levels as needed
+                        shakeCamera(2000); // Shake the camera for 1 second
                         object.visible = true;
                         // Set the initial scale to 0
                         object.scale.set(0, 0, 0);
@@ -357,6 +371,21 @@ function handleAudioInput() {
         .catch(handleAudioInputError);
 }
 
+let shakeInterval;
+function shakeCamera(duration = 1000) {
+    const shakeIntensity = 0.3;
+    clearInterval(shakeInterval); // Clear any existing shake interval
+
+    shakeInterval = setInterval(() => {
+        camera.position.x += Math.random() * shakeIntensity - shakeIntensity / 2;
+        camera.position.y += Math.random() * shakeIntensity - shakeIntensity / 2;
+        camera.position.z += Math.random() * shakeIntensity - shakeIntensity / 2;
+    }, 50); // Apply shake effect every 100ms
+
+    setTimeout(() => {
+        clearInterval(shakeInterval); // Stop shaking after the duration
+    }, duration);
+}
 // Function to handle errors with audio input
 function handleAudioInputError(error) {
     console.error('Error accessing microphone:', error);
@@ -366,53 +395,59 @@ function handleAudioInputError(error) {
 function createStartButton() {
     const buttonContainer = document.createElement('div');
     buttonContainer.id = 'button-container';
+    const volbutcont = document.createElement('div');
+    volbutcont.id = 'volbutcont';
+    
     const startButton = document.createElement('button');
+    startButton.id = 'startButton';
     startButton.textContent = 'Start Visualization';
-    startButton.addEventListener('click', handleAudioInput);
+    startButton.addEventListener('click', function() {
+        handleAudioInput();
+        startButton.style.display = 'none'; // Hide the button when it's clicked
+    });
     buttonContainer.appendChild(startButton);
+    document.body.appendChild(buttonContainer);
+
 
     const volumeButton50 = document.createElement('button');
     volumeButton50.textContent = 'Set Volume to 50';
     volumeButton50.addEventListener('click', function() {
         average = 50;
     });
-    buttonContainer.appendChild(volumeButton50);
+    volbutcont.appendChild(volumeButton50);
 
     const volumeButton70 = document.createElement('button');
     volumeButton70.textContent = 'Set Volume to 70';
     volumeButton70.addEventListener('click', function() {
         average = 76;
     });
-    buttonContainer.appendChild(volumeButton70);
-
-    document.body.appendChild(buttonContainer);
+    volbutcont.appendChild(volumeButton70);
+    document.body.appendChild(volbutcont);
 
     volumeDisplay = document.createElement('div');
     volumeDisplay.id = 'volume-display';
     document.body.appendChild(volumeDisplay);
 }
 
+let keys = {
+    w: false,
+    a: false,
+    s: false,
+    d: false
+};
+
+const controls = new PointerLockControls(camera, document.body);
+
 function setupControlsAndListeners(camera) {
-    const controls = new PointerLockControls(camera, document.body);
-
-
+    
     document.addEventListener('keydown', function(event) {
         const key = event.key;
-        const speed =3;
-        switch (key) {
-            case "w":
-                controls.moveForward(speed);
-                break;
-            case "a":
-                controls.moveRight(-speed);
-                break;
-            case "s":
-                controls.moveForward(-speed);
-                break;
-            case "d":
-                controls.moveRight(speed);
-                break;
-        }
+        keys[key] = true;
+    }, false);
+    
+    document.addEventListener('keyup', function(event) {
+        const key = event.key;
+        keys[key] = false;
     }, false);
 
     document.addEventListener('click', function () {
@@ -420,14 +455,22 @@ function setupControlsAndListeners(camera) {
     }, false);
 }
 
+function moveControls(keys, controls, speed) {
+    if (keys["w"]) controls.moveForward(speed);
+    if (keys["a"]) controls.moveRight(-speed);
+    if (keys["s"]) controls.moveForward(-speed);
+    if (keys["d"]) controls.moveRight(speed);
+}
+
 
 function animate() {
     requestAnimationFrame(animate);
 
-    // Update your scene here
     if (watertexture) {
         watertexture.offset.x -= 0.001;
     }
+    const speed = 0.1;
+    moveControls(keys, controls, speed);
     renderer.render(scene, camera);
 }
 
