@@ -1,5 +1,8 @@
+import * as THREE from "https://cdn.skypack.dev/three@0.129.0/build/three.module.js";
 import { PointerLockControls } from '/js/PointerLockControls.js';
 window.PointerLockControls = PointerLockControls;
+
+import { GLTFLoader } from "https://cdn.skypack.dev/three@0.129.0/examples/jsm/loaders/GLTFLoader.js";
 
 
 let object;
@@ -10,6 +13,10 @@ let audioContext;
 let volumeDisplay;
 let average;
 let watertexture;
+
+//gltb
+let animateRocket = false;
+let rocket;
 
 function initializeAudioContext() {
     // Check if audioContext is already initialized
@@ -32,6 +39,104 @@ document.body.appendChild(renderer.domElement);
 //const axes = new THREE.AxesHelper(15);
 //axes.position.set(-20, 0, 0);
 //scene.add(axes);
+
+//glb objects
+const loaderg = new GLTFLoader();
+
+loaderg.load(
+    '../mdls/Rocketship.glb',
+    function ( gltf ) {
+        const scale = 1;
+        gltf.scene.scale.set(scale, scale, scale);
+        gltf.scene.position.set(4, 21, 4);
+        scene.add( gltf.scene );
+        rocket = gltf.scene; 
+    },
+    // called while loading is progressing
+    function ( xhr ) {
+        console.log( ( xhr.loaded / xhr.total * 100 ) + '% loaded' );
+    },
+    // called when loading has errors
+    function ( error ) {
+        console.log( 'An error happened', error );
+    }
+);
+
+loaderg.load(
+    '../mdls/Telescope.glb',
+    function ( gltf ) {
+        const scale = 1.9;
+        gltf.scene.scale.set(scale, scale, scale);
+        gltf.scene.position.set(93, 21, 4);
+        scene.add( gltf.scene );
+    },
+    // called while loading is progressing
+    function ( xhr ) {
+        console.log( ( xhr.loaded / xhr.total * 100 ) + '% loaded' );
+    },
+    // called when loading has errors
+    function ( error ) {
+        console.log( 'An error happened', error );
+    }
+);
+loaderg.load(
+    '../mdls/Chair.glb',
+    function ( gltf ) {
+        const scale = 4.3;
+        gltf.scene.scale.set(scale, scale, scale);
+        gltf.scene.position.set(93, 20, -4);
+        gltf.scene.rotation.y = - Math.PI / 4;
+        scene.add( gltf.scene );
+    },
+    // called while loading is progressing
+    function ( xhr ) {
+        console.log( ( xhr.loaded / xhr.total * 100 ) + '% loaded' );
+    },
+    // called when loading has errors
+    function ( error ) {
+        console.log( 'An error happened', error );
+    }
+);
+
+loaderg.load(
+    '../mdls/Cabin.glb',
+    function ( gltf ) {
+        const scale = 0.03;
+        gltf.scene.scale.set(scale, scale, scale);
+        gltf.scene.position.set(-350, 80, 4);
+        gltf.scene.rotation.y = Math.PI / 2;
+        scene.add( gltf.scene );
+    },
+    // called while loading is progressing
+    function ( xhr ) {
+        console.log( ( xhr.loaded / xhr.total * 100 ) + '% loaded' );
+    },
+    // called when loading has errors
+    function ( error ) {
+        console.log( 'An error happened', error );
+    }
+);
+
+loaderg.load(
+    '../mdls/desk.glb',
+    function ( gltf ) {
+        const scale = 2;
+        gltf.scene.scale.set(scale, scale, scale);
+        gltf.scene.position.set(118, 19.6, -32);
+        gltf.scene.rotation.y = -Math.PI /2;
+        scene.add( gltf.scene );
+    },
+    // called while loading is progressing
+    function ( xhr ) {
+        console.log( ( xhr.loaded / xhr.total * 100 ) + '% loaded' );
+    },
+    // called when loading has errors
+    function ( error ) {
+        console.log( 'An error happened', error );
+    }
+);
+
+
 
 
 //ambient light
@@ -313,6 +418,36 @@ loader.load('textures/sun.jpg', function(texture) {
     meteor.visible = false; // Initially hide the object
 
 });
+
+const geometry = new THREE.BoxGeometry(1, 1, 1);
+const material = new THREE.MeshBasicMaterial({color: 0xff0000});
+const button = new THREE.Mesh(geometry, material);
+button.position.set(100, 23, -7.6);
+scene.add(button);
+
+// Create a raycaster and a vector to hold the mouse position
+const raycaster = new THREE.Raycaster();
+const mouse = new THREE.Vector2();
+
+// Add an event listener for the mouse click
+window.addEventListener('click', function(event) {
+    // Calculate mouse position in normalized device coordinates (-1 to +1) for both components
+    mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+    mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+
+    // Update the picking ray with the camera and mouse position
+    raycaster.setFromCamera(mouse, camera);
+
+    // Calculate objects intersecting the picking ray
+    const intersects = raycaster.intersectObjects(scene.children);
+
+    for (let i = 0; i < intersects.length; i++) {
+        if (intersects[i].object === button) {
+            button.scale.z *= 0.5;
+            animateRocket = true;
+        }
+    }
+}, false);
 // Function to handle user audio input
 function handleAudioInput() {
     console.log('Requesting microphone access...');
@@ -463,11 +598,19 @@ function moveControls(keys, controls, speed) {
 }
 
 
+let rocketSpeed = 0.001; // Start speed
+const speedIncrement = 0.0002;
 function animate() {
     requestAnimationFrame(animate);
 
     if (watertexture) {
         watertexture.offset.x -= 0.001;
+    }
+    if (rocket && animateRocket) {
+        rocket.position.y += rocketSpeed;
+        rocket.rotation.y += 0.001;
+        rocketSpeed += speedIncrement;
+        
     }
     const speed = 0.1;
     moveControls(keys, controls, speed);
