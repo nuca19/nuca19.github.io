@@ -18,6 +18,8 @@ let watertexture;
 let animateRocket = false;
 let rocket;
 
+let shakeInterval;
+
 function initializeAudioContext() {
     // Check if audioContext is already initialized
     if (!audioContext) {
@@ -42,25 +44,6 @@ document.body.appendChild(renderer.domElement);
 
 //glb objects
 const loaderg = new GLTFLoader();
-
-loaderg.load(
-    '../mdls/Rocketship.glb',
-    function ( gltf ) {
-        const scale = 1;
-        gltf.scene.scale.set(scale, scale, scale);
-        gltf.scene.position.set(4, 21, 4);
-        scene.add( gltf.scene );
-        rocket = gltf.scene; 
-    },
-    // called while loading is progressing
-    function ( xhr ) {
-        console.log( ( xhr.loaded / xhr.total * 100 ) + '% loaded' );
-    },
-    // called when loading has errors
-    function ( error ) {
-        console.log( 'An error happened', error );
-    }
-);
 
 loaderg.load(
     '../mdls/Telescope.glb',
@@ -136,8 +119,43 @@ loaderg.load(
     }
 );
 
+loaderg.load(
+    '../mdls/Rocketship.glb',
+    function ( gltf ) {
+        const scale = 1;
+        gltf.scene.scale.set(scale, scale, scale);
+        gltf.scene.position.set(50, 23, 33);
+        gltf.scene.rotation.y = -Math.PI;
+        scene.add( gltf.scene );
+        rocket = gltf.scene; 
+    },
+    // called while loading is progressing
+    function ( xhr ) {
+        console.log( ( xhr.loaded / xhr.total * 100 ) + '% loaded' );
+    },
+    // called when loading has errors
+    function ( error ) {
+        console.log( 'An error happened', error );
+    }
+);
 
-
+loaderg.load(
+    '../mdls/LandingPad.glb',
+    function ( gltf ) {
+        const scale = 15;
+        gltf.scene.scale.set(scale, scale, scale);
+        gltf.scene.position.set(50, -5, 35);
+        scene.add( gltf.scene );
+    },
+    // called while loading is progressing
+    function ( xhr ) {
+        console.log( ( xhr.loaded / xhr.total * 100 ) + '% loaded' );
+    },
+    // called when loading has errors
+    function ( error ) {
+        console.log( 'An error happened', error );
+    }
+);
 
 //ambient light
 var light = new THREE.AmbientLight(0xffffff); // soft white light
@@ -249,9 +267,9 @@ function createForest(x, y, z, treeCount) {
 }
 
 // Create forests
-var forest1 = createForest(-30, 3, -50, 50);
+var forest1 = createForest(-30, 3, -50, 70);
 scene.add(forest1);
-var forest3 = createForest(-50, 3, 60, 50);
+var forest3 = createForest(-80, 3, 90, 70);
 scene.add(forest3);
 
 //river
@@ -260,13 +278,13 @@ loader.load('textures/water.jpg', function(texture) {
     watertexture = texture;
     // Define the points along the path of the river
     const points = [
-        new THREE.Vector3(-500, -6, 10),
+        new THREE.Vector3(-280, -2, 70),
+        new THREE.Vector3(-260, -6, 50),
         new THREE.Vector3(-100, -6, 12),
-        new THREE.Vector3(-50, -6, 8),
-        new THREE.Vector3(20, -6, 20),
-        new THREE.Vector3(20, -6, 40),
         new THREE.Vector3(20, -6, 60),
-        new THREE.Vector3(50, -6, 200)
+        new THREE.Vector3(50, -6, 200),
+        new THREE.Vector3(100, -6, 300),
+        new THREE.Vector3(40, -6, 600)
     ];
 
     // Create a curve from the points
@@ -445,6 +463,7 @@ window.addEventListener('click', function(event) {
         if (intersects[i].object === button) {
             button.scale.z *= 0.5;
             animateRocket = true;
+            shakeCamera(7000); 
         }
     }
 }, false);
@@ -473,14 +492,14 @@ function handleAudioInput() {
                     average = sum / bufferLength;
                     
                     if (average > 40 && average <= 50) { // Adjust the threshold levels as needed
-                        shakeCamera(2000); // Shake the camera for 1 second
                         object.visible = true;
                         // Set the initial scale to 0
                         object.scale.set(0, 0, 0);
                         gsap.to(object.scale, { x: 1, y: 1, z: 1, duration: 4, onComplete: function() {
                             object.visible = false;
                         }});
-                    } else if (average > 75 && average <= 100) {
+                    } else if (average > 70 && average <= 100) {
+                        shakeCamera(3000); // Shake the camera for 1 second
                         meteor.visible = true;
                         meteor.scale.set(0, 0, 0);
                         gsap.to(meteor.position, { y: 4, x: 0, z: 20, duration: 6 });
@@ -506,10 +525,11 @@ function handleAudioInput() {
         .catch(handleAudioInputError);
 }
 
-let shakeInterval;
 function shakeCamera(duration = 1000) {
     const shakeIntensity = 0.3;
     clearInterval(shakeInterval); // Clear any existing shake interval
+
+    const initialY = camera.position.y;
 
     shakeInterval = setInterval(() => {
         camera.position.x += Math.random() * shakeIntensity - shakeIntensity / 2;
@@ -519,6 +539,7 @@ function shakeCamera(duration = 1000) {
 
     setTimeout(() => {
         clearInterval(shakeInterval); // Stop shaking after the duration
+        camera.position.y = initialY;
     }, duration);
 }
 // Function to handle errors with audio input
