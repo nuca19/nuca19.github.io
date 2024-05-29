@@ -10,6 +10,7 @@ let meteor;
 let volumeModel;
 let moonanimation = false;
 let meteoranimation = false;
+let birdanimation = false;
 
 let audioContext;
 let volumeDisplay;
@@ -128,6 +129,25 @@ loaderg.load(
 );
 
 loaderg.load(
+    '../mdls/LightCeiling.glb',
+    function ( gltf ) {
+        const scale = 3;
+        gltf.scene.scale.set(scale, scale, scale);
+        gltf.scene.position.set(100, 29, 0);
+        gltf.scene.rotation.y = -Math.PI /2;
+        scene.add( gltf.scene );
+    },
+    // called while loading is progressing
+    function ( xhr ) {
+        console.log( ( xhr.loaded / xhr.total * 100 ) + '% loaded' );
+    },
+    // called when loading has errors
+    function ( error ) {
+        console.log( 'An error happened', error );
+    }
+);
+
+loaderg.load(
     '../mdls/Rocketship.glb',
     function ( gltf ) {
         const scale = 1;
@@ -172,7 +192,7 @@ loaderg.load(
     function ( gltf ) {
         const scale = 20;
         gltf.scene.scale.set(scale, scale, scale);
-        gltf.scene.position.set(50, -2, 0);
+        gltf.scene.position.set(62, -2, -25);
         scene.add( gltf.scene );
 
         var rock2 = gltf.scene.clone();
@@ -212,6 +232,25 @@ loaderg.load(
     }
 );
 
+function createBird(callback) {
+    loaderg.load(
+        '../mdls/Bird.glb',
+        function (gltf) {
+            const scale = 0.02;
+            gltf.scene.scale.set(scale, scale, scale);
+            callback(gltf.scene);
+        },
+        // called while loading is progressing
+        function (xhr) {
+            console.log((xhr.loaded / xhr.total * 100) + '% loaded');
+        },
+        // called when loading has errors
+        function (error) {
+            console.log('An error happened', error);
+        }
+    );
+}
+
 
 
 loaderg.load(
@@ -239,7 +278,7 @@ loaderg.load(
 //scene.add(light);
 
 const cabinlight = new THREE.PointLight(0xffffff, 1, 10);
-cabinlight.position.set(100, 27, 0);
+cabinlight.position.set(100, 24, 0);
 scene.add(cabinlight);
 
 const light = new THREE.PointLight(0xffffff, 1, 2000);
@@ -355,10 +394,11 @@ function createForest(x, y, z, treeCount) {
     for (var i = 0; i < treeCount; i++) {
         var tree = createTree();
         tree.position.set(
-            x + Math.random() * 75 - 25, 
+            x + Math.random() * 120 - 25, 
             y,
-            z + Math.random() * 75 - 25  
+            z + Math.random() * 90 - 25  
         );
+        tree.scale.set(1.4, 1.4, 1.4);
         forest.add(tree);
     }
 
@@ -366,9 +406,9 @@ function createForest(x, y, z, treeCount) {
 }
 
 // Create forests
-var forest1 = createForest(-30, 3, -50, 70);
+var forest1 = createForest(-30, 5, -50, 70);
 scene.add(forest1);
-var forest3 = createForest(-80, 3, 90, 70);
+var forest3 = createForest(-80, 5, 90, 70);
 scene.add(forest3);
 
 //river
@@ -451,12 +491,12 @@ function createCabin() {
     cabin.add(door);
     
     // Create the floor
-    var floorGeometry = new THREE.PlaneGeometry(19, 15); // Adjust the size as needed
+    var floorGeometry = new THREE.BoxGeometry(19, 15,0.8); // Adjust the size as needed
     var floorMaterial = new THREE.MeshPhongMaterial({color: 0x654321}); // Adjust the color as needed
     var floor = new THREE.Mesh(floorGeometry, floorMaterial);
 
     // Position the floor under the cabin
-    floor.position.set(97.5, 20, 0); // Adjust the position as needed
+    floor.position.set(97.5, 19.6, 0); // Adjust the position as needed
     floor.rotation.x = -Math.PI / 2; // Rotate the floor to be horizontal
 
     // Add the floor to the scene
@@ -487,7 +527,7 @@ var buildings = [
 // Create the buildings
 for (var i = 0; i < buildings.length; i++) {
     var buildingGeometry = new THREE.BoxGeometry(buildings[i].size.width, buildings[i].size.height, buildings[i].size.depth);
-    var buildingMaterial = new THREE.MeshBasicMaterial({color: 0x1C1D22});
+    var buildingMaterial = new THREE.MeshPhongMaterial({color: 0x1C1D22});
     var building = new THREE.Mesh(buildingGeometry, buildingMaterial);
     building.position.set(buildings[i].position.x, buildings[i].size.height / 2, buildings[i].position.z);
     city.add(building);
@@ -574,6 +614,22 @@ window.addEventListener('click', function(event) {
         }
     }
 }, false);
+
+let birds = [];
+for (let i = 0; i < 10; i++) {
+    createBird(function(bird) {
+        bird.visible = false;
+        bird.position.set(
+            -30 + (Math.random() * 100 - 50), // Random point within 50 units of the forest's x position
+            3, // Same y position as the forest
+            -50 + (Math.random() * 100 - 50) // Random point within 50 units of the forest's z position
+        );
+        bird.rotation.x = Math.random() * Math.PI * 2; // Random rotation
+        scene.add(bird);
+        birds.push(bird);
+    });
+}
+
 // Function to handle user audio input
 let lastUpdateTime = Date.now();
 function handleAudioInput() {
@@ -614,7 +670,6 @@ function handleAudioInput() {
                         }
                         average = totalVolume / volumes.length;
                     }
-                    console.log('Average volume:', average);
                     volumeDisplay.textContent = 'Volume Level: ' + Math.round(average);
                 
                     
@@ -634,6 +689,42 @@ function handleAudioInput() {
                             moonanimation = false;
                             scene.remove(moonLight);
                         }});
+                    } else if (average > 60 && average <= 70 && birdanimation == false) {
+                        console.log('Birds flying');
+                        birdanimation = true;
+                        let completedAnimations = 0;
+                        
+                        // Make all birds visible
+                        for (let bird of birds) {
+                            bird.visible = true;
+                        }
+                        
+                        // Start the animations
+                        for (let i = 0; i < birds.length; i++) {
+                            gsap.to(birds[i].position, { 
+                                y: 300, x: birds[i].position.x + (Math.random() * 1000 - 50), z: birds[i].position.z + (Math.random() * 1000 - 50),  
+                                duration: 20, 
+                                onComplete: function() {
+                                    birds[i].visible = false;
+                        
+                                    completedAnimations++; // Increment the counter
+                        
+                                    // If all animations have completed, set birdanimation to false
+                                    if (completedAnimations === birds.length) {
+                                        for(let i = 0; i < birds.length; i++) {
+                                            birds[i].position.set(
+                                                -30 + (Math.random() * 100 - 50), // Random point within 50 units of the forest's x position
+                                                3, // Same y position as the forest
+                                                -50 + (Math.random() * 100 - 50) // Random point within 50 units of the forest's z position
+                                            );
+                                        }
+                                        birdanimation = false;
+                                        
+                                    }
+                                }
+                            });
+                        }
+
                     } else if (average > 140 && meteoranimation == false) {
                         //shakeCamera(3000); // Shake the camera for 1 second
                         meteor.visible = true;
@@ -773,7 +864,7 @@ function animate() {
         rocket.rotation.y += 0.001;
         rocketSpeed += speedIncrement;
     }
-    const movementspeed = 0.1;
+    const movementspeed = 1;
     moveControls(keys, controls, movementspeed);
     renderer.render(scene, camera);
 }
