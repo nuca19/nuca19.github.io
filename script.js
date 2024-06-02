@@ -4,6 +4,10 @@ window.PointerLockControls = PointerLockControls;
 
 import { GLTFLoader } from "https://cdn.skypack.dev/three@0.129.0/examples/jsm/loaders/GLTFLoader.js";
 
+import * as func from './func.js';
+
+let buttonPressed = false;
+let buttonAverage = 0;
 
 let moon;
 let meteor;
@@ -21,12 +25,50 @@ let volumes = [];
 //gltb
 let animateRocket = false;
 let rocket;
-let particleSystem;
 let fire1;
 let fire2;
 let fire3;
 
 let shakeInterval;
+
+function createStartButton() {
+    const buttonContainer = document.createElement('div');
+    buttonContainer.id = 'button-container';
+    const volbutcont = document.createElement('div');
+    volbutcont.id = 'volbutcont';
+    
+    const startButton = document.createElement('button');
+    startButton.id = 'startButton';
+    startButton.textContent = 'Start Visualization';
+    startButton.addEventListener('click', function() {
+        handleAudioInput();
+        startButton.style.display = 'none';
+    });
+    buttonContainer.appendChild(startButton);
+    document.body.appendChild(buttonContainer);
+
+
+    const ani1 = document.createElement('button');
+    ani1.textContent = 'ani1';
+    ani1.addEventListener('click', function() {
+        buttonPressed = true;
+        buttonAverage = 41;
+    });
+    volbutcont.appendChild(ani1);
+    
+    const ani2 = document.createElement('button');
+    ani2.textContent = 'ani2';
+    ani2.addEventListener('click', function() {
+        buttonPressed = true;
+        buttonAverage = 61;
+    });
+    volbutcont.appendChild(ani2);
+    document.body.appendChild(volbutcont);
+
+    volumeDisplay = document.createElement('div');
+    volumeDisplay.id = 'volume-display';
+    document.body.appendChild(volumeDisplay);
+}
 
 function initializeAudioContext() {
     // Check if audioContext is already initialized
@@ -60,6 +102,7 @@ loaderg.load(
         const scale = 1.9;
         gltf.scene.scale.set(scale, scale, scale);
         gltf.scene.position.set(93, 21, 4);
+        func.enableShadows(gltf.scene);
         scene.add( gltf.scene );
     },
     // called while loading is progressing
@@ -78,26 +121,8 @@ loaderg.load(
         gltf.scene.scale.set(scale, scale, scale);
         gltf.scene.position.set(93, 20, -4);
         gltf.scene.rotation.y = - Math.PI / 4;
+        func.enableShadows(gltf.scene);
         scene.add( gltf.scene );
-    },
-    // called while loading is progressing
-    function ( xhr ) {
-        console.log( ( xhr.loaded / xhr.total * 100 ) + '% loaded' );
-    },
-    // called when loading has errors
-    function ( error ) {
-        console.log( 'An error happened', error );
-    }
-);
-
-loaderg.load(
-    '../mdls/Cabin.glb',
-    function ( gltf ) {
-        const scale = 0.03;
-        gltf.scene.scale.set(scale, scale, scale);
-        gltf.scene.position.set(-350, 80, 4);
-        gltf.scene.rotation.y = Math.PI / 2;
-        //scene.add( gltf.scene );
     },
     // called while loading is progressing
     function ( xhr ) {
@@ -116,6 +141,7 @@ loaderg.load(
         gltf.scene.scale.set(scale, scale, scale);
         gltf.scene.position.set(118, 19.6, -32);
         gltf.scene.rotation.y = -Math.PI /2;
+        func.enableShadows(gltf.scene);
         scene.add( gltf.scene );
     },
     // called while loading is progressing
@@ -154,8 +180,9 @@ loaderg.load(
         gltf.scene.scale.set(scale, scale, scale);
         gltf.scene.position.set(50, 23, 33);
         gltf.scene.rotation.y = -Math.PI;
-        gltf.scene.castShadow = true;
-        gltf.scene.receiveShadow = true;
+
+        func.enableShadows(gltf.scene);
+
         scene.add( gltf.scene );
         rocket = gltf.scene;
     },
@@ -175,6 +202,7 @@ loaderg.load(
         const scale = 15;
         gltf.scene.scale.set(scale, scale, scale);
         gltf.scene.position.set(50, -5, 35);
+        func.enableShadows(gltf.scene);
         scene.add( gltf.scene );
     },
     // called while loading is progressing
@@ -193,6 +221,7 @@ loaderg.load(
         const scale = 20;
         gltf.scene.scale.set(scale, scale, scale);
         gltf.scene.position.set(62, -2, -25);
+        func.enableShadows(gltf.scene);
         scene.add( gltf.scene );
 
         var rock2 = gltf.scene.clone();
@@ -220,6 +249,7 @@ loaderg.load(
         const scale = 40;
         gltf.scene.scale.set(scale, scale, scale);
         gltf.scene.position.set(-140, -2, 35);
+        func.enableShadows(gltf.scene);
         scene.add( gltf.scene );
     },
     // called while loading is progressing
@@ -251,8 +281,6 @@ function createBird(callback) {
     );
 }
 
-
-
 loaderg.load(
     '../mdls/Fire.glb',
     function ( gltf ) {
@@ -277,25 +305,22 @@ loaderg.load(
 //var light = new THREE.AmbientLight(0xffffff); // soft white light
 //scene.add(light);
 
-const cabinlight = new THREE.PointLight(0xffffff, 1, 10);
+const cabinlight = new THREE.PointLight(0xffffff, 1, 13);
 cabinlight.position.set(100, 24, 0);
 scene.add(cabinlight);
 
-const light = new THREE.PointLight(0xffffff, 1, 2000);
-light.position.set(0, 400, 1);
+const light = new THREE.PointLight(0xffffff, 1, 1900);
+light.position.set(-10, 500, 1);
 
-// Enable shadows for the light
+// // Enable shadows for the light
 light.castShadow = true;
 
-// Optional: Set the shadow map size
-light.shadow.mapSize.width = 512;
-light.shadow.mapSize.height = 512;
+light.shadow.mapSize.width = 1024; // default is 512
+light.shadow.mapSize.height = 1024; // default is 512
 
-// Optional: Set the shadow camera frustum
-light.shadow.camera.near = 0.5;
-light.shadow.camera.far = 500;
+// Adjust the shadow bias to remove artifacts
 
-// Add the light to the scene
+// // Add the light to the scene
 scene.add(light);
 
 //create sky
@@ -322,7 +347,7 @@ loader.load('textures/ground.png', function(texture) {
     texture.repeat.set(4, 4); // Repeat the texture 4 times in both directions
 
     var geometry = new THREE.BoxGeometry(1500, 1500, 3);
-    const material = new THREE.MeshStandardMaterial({ map: texture }); 
+    const material = new THREE.MeshPhongMaterial({ map: texture }); 
     var plane = new THREE.Mesh(geometry, material);
     plane.rotation.x = -Math.PI / 2; // Rotate the plane to make it horizontal
     plane.position.y = -3.5;
@@ -333,26 +358,31 @@ loader.load('textures/ground.png', function(texture) {
     geometry = new THREE.ConeGeometry(250, 150, 10);
     var mountain = new THREE.Mesh(geometry, material);
     mountain.position.set(-390, 10, 350);
+    mountain.castShadow = true;
     scene.add(mountain);
     
     geometry = new THREE.ConeGeometry(350, 250, 10);
     mountain = new THREE.Mesh(geometry, material);
     mountain.position.set(-400, 40, 150);
+    mountain.castShadow = true;
     scene.add(mountain);
     
     geometry = new THREE.ConeGeometry(500, 350, 10);
     mountain = new THREE.Mesh(geometry, material);
     mountain.position.set(-450, 70, -150);
+    mountain.castShadow = true;
     scene.add(mountain);
     
     geometry = new THREE.ConeGeometry(200, 200, 10);
     mountain = new THREE.Mesh(geometry, material);
     mountain.position.set(175, -5, 600);
+    mountain.castShadow = true;
     scene.add(mountain);
 
     geometry = new THREE.ConeGeometry(100, 50, 6);
     mountain = new THREE.Mesh(geometry, material);
     mountain.position.set(100, -5, 0); 
+    mountain.castShadow = true;
     scene.add(mountain);
 
 });
@@ -383,6 +413,8 @@ function createTree() {
 
     treeTrunk.position.y = -3.5; 
     treeTop.add(treeTrunk);
+    treeTop.castShadow = true;
+    treeTop.receiveShadow = true;
 
     return treeTop;
 }
@@ -408,6 +440,8 @@ function createForest(x, y, z, treeCount) {
 // Create forests
 var forest1 = createForest(-30, 5, -50, 70);
 scene.add(forest1);
+var forest2 = createForest(80, 5, 80, 80);
+scene.add(forest2);
 var forest3 = createForest(-80, 5, 90, 70);
 scene.add(forest3);
 
@@ -456,9 +490,10 @@ function createCabin() {
 
     // Create the walls
     var geometry = new THREE.PlaneGeometry(7, 5);
+    var geo2 = new THREE.PlaneGeometry(7.5, 5);
     var material = new THREE.MeshPhongMaterial({color: 0x8b4513, side: THREE.DoubleSide}); // Make the walls double-sided
     var wall1 = new THREE.Mesh(geometry, material);
-    var wall2 = wall1.clone();
+    var wall2 = new THREE.Mesh(geo2, material);
     var wall3 = wall1.clone();
     var wall4 = wall1.clone();
 
@@ -472,14 +507,26 @@ function createCabin() {
     wall3.position.x = -2.5;
     wall4.position.z = -3.75;
 
+    wall1.castShadow = true;
+    wall2.castShadow = true;
+    wall3.castShadow = true;
+    wall4.castShadow = true;
+
+    wall1.receiveShadow = true;
+    wall2.receiveShadow = true;
+    wall3.receiveShadow = true;
+    wall4.receiveShadow = true;
+
     cabin.add(wall1, wall2, wall4);
 
     // Create the roof
-    geometry = new THREE.ConeGeometry(5, 2, 4);
+    geometry = new THREE.ConeGeometry(6, 3, 4);
     material = new THREE.MeshPhongMaterial({color: 0x8b4513});
     var roof = new THREE.Mesh(geometry, material);
-    roof.position.y = 3.5;
+    roof.position.y = 4;
     roof.rotation.y = Math.PI / 4;
+    roof.castShadow = true;
+    roof.receiveShadow = true;
     cabin.add(roof);
 
     // Create the door
@@ -495,13 +542,11 @@ function createCabin() {
     var floorMaterial = new THREE.MeshPhongMaterial({color: 0x654321}); // Adjust the color as needed
     var floor = new THREE.Mesh(floorGeometry, floorMaterial);
 
-    // Position the floor under the cabin
-    floor.position.set(97.5, 19.6, 0); // Adjust the position as needed
-    floor.rotation.x = -Math.PI / 2; // Rotate the floor to be horizontal
-
-    // Add the floor to the scene
+    floor.position.set(97.5, 19.6, 0); 
+    floor.rotation.x = -Math.PI / 2; 
+    floor.receiveShadow = true;
+    floor.castShadow = true;
     scene.add(floor);
-
     return cabin;
 }
 
@@ -547,7 +592,7 @@ volumeModel.position.set(100, 21, -6.2);
 volumeModel.scale.y = 0;
 scene.add(volumeModel);
 const baseGeometry = new THREE.BoxGeometry(2.5, 2.5, 2.5);
-const baseMaterial = new THREE.MeshBasicMaterial({color: 0x1C1D22}); // Change the color as needed
+const baseMaterial = new THREE.MeshPhongMaterial({color: 0x1C1D22}); // Change the color as needed
 const base = new THREE.Mesh(baseGeometry, baseMaterial);
 base.position.set(100, 19.9, -6.2); // Position it under the volumeModel
 scene.add(base);
@@ -556,10 +601,10 @@ scene.add(base);
 //moon
 loader = new THREE.TextureLoader();
 loader.load('textures/moon.jpg', function(texture) {
-    const sungeo = new THREE.SphereGeometry(70, 32, 32);
+    const sungeo = new THREE.SphereGeometry(80, 32, 32);
     const sunmat = new THREE.MeshBasicMaterial({ map: texture });
     moon = new THREE.Mesh(sungeo, sunmat);
-    moon.position.set(-500, 200, 0);
+    moon.position.set(-500, 250, 0);
     scene.add(moon);
     moon.visible = false; // Initially hide the moon
 });
@@ -575,10 +620,10 @@ loader.load('textures/sun.jpg', function(texture) {
 
 });
 
-const geometry = new THREE.BoxGeometry(1, 1, 1);
-const material = new THREE.MeshBasicMaterial({color: 0xff0000});
+const geometry = new THREE.CylinderGeometry(0.5, 0.5, 0.5, 32);
+const material = new THREE.MeshPhongMaterial({color: 0xff0000});
 const button = new THREE.Mesh(geometry, material);
-button.position.set(100, 23, -7.6);
+button.position.set(105, 21.5, 0);
 scene.add(button);
 
 // Create a raycaster and a vector to hold the mouse position
@@ -593,13 +638,17 @@ window.addEventListener('click', function(event) {
 
     // Update the picking ray with the camera and mouse position
     raycaster.setFromCamera(mouse, camera);
+    const rocketLight = new THREE.PointLight(0xffa4a1, 2, 200);
+    rocketLight.position.set(0, -30, 0); // Position the light below the rocket
+    rocketLight.visible = false; 
+    rocket.add(rocketLight);
 
     // Calculate objects intersecting the picking ray
     const intersects = raycaster.intersectObjects(scene.children);
 
     for (let i = 0; i < intersects.length; i++) {
         if (intersects[i].object === button) {
-            button.scale.z *= 0.5;
+            button.scale.y *= 0.2;
             animateRocket = true;
             scene.add(fire1);
             scene.add(fire2);
@@ -610,6 +659,8 @@ window.addEventListener('click', function(event) {
             fire1.position.set(0, rocket.position.y - 47, 0); // Top of the triangle
             fire2.position.set(-5, rocket.position.y - 47, -5); // Bottom left of the triangle
             fire3.position.set(5, rocket.position.y - 47, -5); // Bottom right of the triangle
+            rocketLight.visible = true;
+            rocket.add(rocketLight);
             shakeCamera(7000); 
         }
     }
@@ -662,35 +713,43 @@ function handleAudioInput() {
                         volumes.shift();
                     }
                 
-                    let average = 0;
+                    average = 0;
                     if (volumes.length > 0) {
                         let totalVolume = 0;
                         for (let i = 0; i < volumes.length; i++) {
                             totalVolume += volumes[i].volume;
                         }
-                        average = totalVolume / volumes.length;
+                        if (buttonPressed) {
+                            average = buttonAverage;
+                            buttonPressed = false; // Reset the flag
+                        } else {
+                            average = totalVolume / volumes.length;
+                        }
                     }
                     volumeDisplay.textContent = 'Volume Level: ' + Math.round(average);
                 
                     
-                    if (average > 40 && average <= 50 && moonanimation == false ) { // Adjust the threshold levels as needed
+                    if (average > 60 && average <= 70 && moonanimation == false ) { 
                         moonanimation = true;
                         moon.visible = true;
-                        // Set the initial scale to 0
                         moon.scale.set(0, 0, 0);
 
                         // Create a point light and position it at the same location as the moon
-                        var moonLight = new THREE.PointLight(0xffffff, 1.5, 1000);
+                        var moonLight = new THREE.PointLight(0xffffff, 5, 1000);
+                        moonLight.castShadow = true;
                         moonLight.position.set(moon.position.x, moon.position.y, moon.position.z);
+                        moonLight.intensity = 0;
                         scene.add(moonLight);
 
-                        gsap.to(moon.scale, { x: 1, y: 1, z: 1, duration: 20, onComplete: function() {
-                            moon.visible = false;
-                            moonanimation = false;
-                            scene.remove(moonLight);
+                        gsap.to([moon.scale, moonLight],{ x: 1, y: 1, z: 1, intensity: 1, duration: 20, onComplete: function() {
+                            gsap.to([moon.scale, moonLight], { x: 0, y: 0, z: 0, intensity: 0,duration: 20, delay: 10, onComplete: function() {
+                                scene.remove(moonLight);
+                                moon.visible = false;
+                                moonanimation = false;
+                            }});
                         }});
-                    } else if (average > 60 && average <= 70 && birdanimation == false) {
-                        console.log('Birds flying');
+
+                    } else if (average > 40 && average <= 50 && birdanimation == false) {
                         birdanimation = true;
                         let completedAnimations = 0;
                         
@@ -703,7 +762,7 @@ function handleAudioInput() {
                         for (let i = 0; i < birds.length; i++) {
                             gsap.to(birds[i].position, { 
                                 y: 300, x: birds[i].position.x + (Math.random() * 1000 - 50), z: birds[i].position.z + (Math.random() * 1000 - 50),  
-                                duration: 20, 
+                                duration: 15, 
                                 onComplete: function() {
                                     birds[i].visible = false;
                         
@@ -725,31 +784,38 @@ function handleAudioInput() {
                             });
                         }
 
-                    } else if (average > 140 && meteoranimation == false) {
-                        //shakeCamera(3000); // Shake the camera for 1 second
+                    } else if (average > 100 && meteoranimation == false) {
                         meteor.visible = true;
                         meteor.scale.set(1, 1, 1);
-                        meteor.position.set(-150, 600, 40);
-
-                        gsap.to(meteor.position, { y: 0, x: 0, z: 0, duration: 60,  onComplete: function() {
-                            meteor.visible = false;
-                            meteor.position.set(-150, 10000, 40);
-                            meteor.scale.set(1, 1, 1);
-                            setTimeout(function() {
-                                meteoranimation = false;
-                            }, 60000);
-                        }});
-                    } else if (average > 100) {
+                        meteor.position.set(-150, 1000, 40);
+                        let meteorLight = new THREE.PointLight(0xffffff, 0.5, 1000);
+                        meteorLight.position.set(-150, 800, 40);
+                        scene.add(meteorLight);
+                        setTimeout(function() {
+                            shakeCamera(3000);
+                        }
+                        , 2000);
                         
-                    } else {
+                        // Animate the meteor, the light, and the light's intensity
+                        gsap.to([meteor.position, meteorLight.position], { y: 130, x: 0, z: 0, duration: 60,  onComplete: function() {
+                                meteor.visible = false;
+                                meteorLight.visible = false; // Hide the light
+                                meteor.position.set(-150, 1500, 40);
+                                meteorLight.position.set(-150, 1500, 40); // Move the light out of view
+                                meteor.scale.set(1, 1, 1);
+                                setTimeout(function() {
+                                    meteoranimation = false;
+                                }, 30000);
+                            }
+                        });
                         
+                        gsap.to(meteorLight, {
+                            intensity: 1, // Increase the light's intensity
+                            duration: 30
+                        });
                     }
 
-                    
                     volumeModel.scale.y = average / 100 *2;
-
-                    //average= 0; //retirar quando nao usar voz!!!!
-
                 }
                 draw();
             }, 2000);
@@ -779,43 +845,6 @@ function handleAudioInputError(error) {
     console.error('Error accessing microphone:', error);
 }
 
-// Function to create and append start button
-function createStartButton() {
-    const buttonContainer = document.createElement('div');
-    buttonContainer.id = 'button-container';
-    const volbutcont = document.createElement('div');
-    volbutcont.id = 'volbutcont';
-    
-    const startButton = document.createElement('button');
-    startButton.id = 'startButton';
-    startButton.textContent = 'Start Visualization';
-    startButton.addEventListener('click', function() {
-        handleAudioInput();
-        startButton.style.display = 'none'; // Hide the button when it's clicked
-    });
-    buttonContainer.appendChild(startButton);
-    document.body.appendChild(buttonContainer);
-
-
-    const volumeButton50 = document.createElement('button');
-    volumeButton50.textContent = 'Set Volume to 50';
-    volumeButton50.addEventListener('click', function() {
-        average = 50;
-    });
-    volbutcont.appendChild(volumeButton50);
-
-    const volumeButton70 = document.createElement('button');
-    volumeButton70.textContent = 'Set Volume to 70';
-    volumeButton70.addEventListener('click', function() {
-        average = 76;
-    });
-    volbutcont.appendChild(volumeButton70);
-    document.body.appendChild(volbutcont);
-
-    volumeDisplay = document.createElement('div');
-    volumeDisplay.id = 'volume-display';
-    document.body.appendChild(volumeDisplay);
-}
 
 let keys = {
     w: false,
@@ -864,7 +893,7 @@ function animate() {
         rocket.rotation.y += 0.001;
         rocketSpeed += speedIncrement;
     }
-    const movementspeed = 1;
+    const movementspeed = 0.1;
     moveControls(keys, controls, movementspeed);
     renderer.render(scene, camera);
 }
