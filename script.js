@@ -754,8 +754,7 @@ function handleAudioInput() {
                             average = buttonAverage;
                             buttonPressed = false; // Reset the flag
                         } else {
-                            //average = totalVolume / volumes.length;
-                            average = 0;
+                            average = totalVolume / volumes.length;
                         }
                     }
                     volumeDisplay.textContent = 'Volume Level: ' + Math.round(average);
