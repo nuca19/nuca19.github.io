@@ -63,6 +63,14 @@ function createStartButton() {
         buttonAverage = 61;
     });
     volbutcont.appendChild(ani2);
+
+    const ani3 = document.createElement('button');
+    ani3.textContent = 'ani3';
+    ani3.addEventListener('click', function() {
+        buttonPressed = true;
+        buttonAverage = 101;
+    });
+    volbutcont.appendChild(ani3);
     document.body.appendChild(volbutcont);
 
     volumeDisplay = document.createElement('div');
@@ -154,6 +162,27 @@ loaderg.load(
     }
 );
 
+loaderg.load(
+    '../mdls/Stop.glb',
+    function ( gltf ) {
+        const scale = 1.5;
+        gltf.scene.scale.set(scale, scale, scale);
+        gltf.scene.position.set(106.9, 24.2, 5);
+        gltf.scene.rotation.z = -Math.PI /2;
+        gltf.scene.rotation.y = -Math.PI ;
+        gltf.scene.rotation.x = -Math.PI /2;
+        func.enableShadows(gltf.scene);
+        scene.add( gltf.scene );
+    },
+    // called while loading is progressing
+    function ( xhr ) {
+        console.log( ( xhr.loaded / xhr.total * 100 ) + '% loaded' );
+    },
+    // called when loading has errors
+    function ( error ) {
+        console.log( 'An error happened', error );
+    }
+);
 loaderg.load(
     '../mdls/LightCeiling.glb',
     function ( gltf ) {
@@ -623,7 +652,9 @@ loader.load('textures/sun.jpg', function(texture) {
 const geometry = new THREE.CylinderGeometry(0.5, 0.5, 0.5, 32);
 const material = new THREE.MeshPhongMaterial({color: 0xff0000});
 const button = new THREE.Mesh(geometry, material);
-button.position.set(105, 21.5, 0);
+button.rotation.z = Math.PI / 2;
+button.position.set(107, 22.5, 5);
+
 scene.add(button);
 
 // Create a raycaster and a vector to hold the mouse position
@@ -723,7 +754,8 @@ function handleAudioInput() {
                             average = buttonAverage;
                             buttonPressed = false; // Reset the flag
                         } else {
-                            average = totalVolume / volumes.length;
+                            //average = totalVolume / volumes.length;
+                            average = 0;
                         }
                     }
                     volumeDisplay.textContent = 'Volume Level: ' + Math.round(average);
@@ -788,7 +820,7 @@ function handleAudioInput() {
                         meteor.visible = true;
                         meteor.scale.set(1, 1, 1);
                         meteor.position.set(-150, 1000, 40);
-                        let meteorLight = new THREE.PointLight(0xffffff, 0.5, 1000);
+                        let meteorLight = new THREE.PointLight(0xffffff, 1, 1000);
                         meteorLight.position.set(-150, 800, 40);
                         scene.add(meteorLight);
                         setTimeout(function() {
@@ -810,7 +842,7 @@ function handleAudioInput() {
                         });
                         
                         gsap.to(meteorLight, {
-                            intensity: 1, // Increase the light's intensity
+                            intensity: 3, // Increase the light's intensity
                             duration: 30
                         });
                     }
